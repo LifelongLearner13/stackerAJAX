@@ -34,7 +34,10 @@ var showQuestion = function(question) {
 var showInspiration = function(answerer) {
 	
 	var result = $('.templates .inspiration').clone();
-	
+	var image = result.find('.user-profile-pic');
+	image.attr('src', answerer.user.profile_image);
+	image.attr('alt', answerer.user.display_name);
+
 	var userProfile = result.find('.user-profile a');
 	userProfile.attr('href', answerer.user.link);
 	userProfile.text(answerer.user.display_name);
