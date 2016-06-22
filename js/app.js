@@ -31,6 +31,26 @@ var showQuestion = function(question) {
 	return result;
 };
 
+var showInspiration = function(answerer) {
+	
+	var result = $('.templates .inspiration').clone();
+	
+	var userProfile = result.find('.user-profile a');
+	userProfile.attr('href', answerer.user.link);
+	userProfile.text(answerer.user.display_name);
+
+	var reputation = result.find('.reputation');
+	reputation.text(answerer.user.reputation);
+
+	var postCount = result.find('.post-count');
+	postCount.text(answerer.post_count);
+
+	var acceptRate = result.find('.accept-rate');
+	acceptRate.text(answerer.user.accept_rate);
+
+	return result;
+};
+
 
 // this function takes the results object from StackOverflow
 // and returns the number of results and tags to be appended to DOM
@@ -81,6 +101,34 @@ var getUnanswered = function(tags) {
 	});
 };
 
+var getInspiration = function(tags, url) {
+	console.log(tags);
+	var request = {
+		site: 'stackoverflow',
+		order: 'desc',
+		sort: 'creation'
+	};
+	
+	$.ajax({
+		url: url,
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+	})
+	.done(function(result){
+		var searchResults = showSearchResults(tags, result.items.length);
+
+		$('.search-results').html(searchResults);
+		$.each(result.items, function(i, item) {
+			var answerer = showInspiration(item);
+			$('.results').append(answerer);
+		});
+	})
+	.fail(function(jqXHR, error){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+};
 
 $(document).ready( function() {
 	$('.unanswered-getter').submit( function(e){
@@ -90,5 +138,15 @@ $(document).ready( function() {
 		// get the value of the tags the user submitted
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
+	});
+
+	$('.inspiration-getter').submit( function(e){
+		e.preventDefault();
+		// zero out results if previous search has run
+		$('.results').html('');
+		// get the value of the tags the user submitted
+		var tags = $(this).find("input[name='answerers']").val();
+		var url = "http://api.stackexchange.com/2.2/tags/" + tags + "/top-answerers/all_time"
+		getInspiration(tags, url);
 	});
 });
